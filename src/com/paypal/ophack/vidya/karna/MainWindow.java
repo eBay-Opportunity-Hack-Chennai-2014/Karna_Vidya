@@ -1,4 +1,4 @@
-package src;
+package com.paypal.ophack.vidya.karna;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
