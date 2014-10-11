@@ -1,11 +1,16 @@
 package com.paypal.ophack.vidya.karna;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FocusTraversalPolicy;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.ArrayList;
+import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -20,17 +25,17 @@ import javax.swing.JTextField;
 public class MainWindow {
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-            	DictionaryUI ui = new DictionaryUI();
-        		ui.render();
-            }
-        });
+			public void run() {
+				DictionaryUI ui = new DictionaryUI();
+				ui.render();
+			}
+		});
 	}
 }
 
 class DictionaryUI {
 	private int WIDTH = 600;
-	
+
 	private String[] tabNames = { "Synonyms", "Wikipedia" };
 	private JFrame mainFrame;
 	private JPanel searchPanel;
@@ -39,12 +44,12 @@ class DictionaryUI {
 	private JButton searchButton;
 	private JTextField wordField;
 	private JTabbedPane tabs;
-	private ArrayList<JTextArea> textAreas;
-	
-	public DictionaryUI(){
-		textAreas = new ArrayList<JTextArea>();
-		for(int i = 0; i <= tabNames.length; i++){
-			textAreas.add(new JTextArea());
+	private ArrayList<FocusableTextArea> textAreas;
+
+	public DictionaryUI() {
+		textAreas = new ArrayList<FocusableTextArea>();
+		for (int i = 0; i <= tabNames.length; i++) {
+			textAreas.add(new FocusableTextArea());
 		}
 	}
 
@@ -53,11 +58,10 @@ class DictionaryUI {
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setBounds(100, 100, 700, 500);
 		mainFrame.setTitle("WordSearch");
-		mainFrame.setFocusTraversalPolicy(new UITraversalPolicy());
+		// mainFrame.setFocusTraversalPolicy(new UITraversalPolicy());
 		initUI();
 		mainFrame.pack();
 		mainFrame.setVisible(true);
-		wordField.requestFocus();
 	}
 
 	private void initUI() {
@@ -74,6 +78,29 @@ class DictionaryUI {
 		wordField = new JTextField(50);
 		wordField.getAccessibleContext().setAccessibleDescription(
 				"Enter the word to search here");
+		wordField.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				WordMeaningStore store = WordMeaningStore.getInstance();
+				MeaningObject wordMeaning = store.getMeaningObject(wordField
+						.getText());
+				if (wordMeaning == null) {
+					textAreas.get(tabNames.length).setText("Word not found");
+					return;
+				}
+				Map<String, String> meanings = wordMeaning.getMeaning_ta();
+				String meaning = "";
+				for (String m : meanings.keySet()) {
+					meaning += m + " : " + meanings.get(m) + "\n";
+				}
+				textAreas.get(tabNames.length).setText(null);
+				textAreas.get(tabNames.length).setText(meaning);
+				
+//				Set<String> synonyms = wordMeaning.getSysnonym_en();
+				
+			}
+		});
 		searchPanel.add(wordField);
 		searchButton = new JButton("Search");
 		searchButton.getAccessibleContext().setAccessibleDescription(
@@ -82,23 +109,23 @@ class DictionaryUI {
 		searchPanel.setPreferredSize(new Dimension(WIDTH, 70));
 		frame.add(searchPanel);
 	}
-	
-	private void addMeaningPanel(JPanel frame){
+
+	private void addMeaningPanel(JPanel frame) {
 		meaningPanel = new JPanel();
-		meaningPanel.setLayout(new BorderLayout());
+		meaningPanel.setLayout(new BoxLayout(meaningPanel, BoxLayout.Y_AXIS));
 		meaningLabel = new JLabel("Meaning");
 		meaningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
 		meaningLabel.getAccessibleContext().setAccessibleDescription(
 				"Meaning of word");
-		meaningPanel.add(meaningLabel, BorderLayout.NORTH);
-		JTextArea meaningArea = textAreas.get(tabNames.length);
-		meaningArea.setText("Meaning");
+		meaningPanel.add(meaningLabel);
+		final FocusableTextArea meaningArea = textAreas.get(tabNames.length);
 		meaningArea.setPreferredSize(new Dimension(WIDTH, 150));
 		meaningArea.setEditable(false);
 		meaningArea.setLineWrap(true);
 		meaningArea.setWrapStyleWord(true);
-		meaningArea.setText("The quick brown fox jumped over a lazy dog. The quick brown fox jumped over a lazy dog. The quick brown fox jumped over a lazy dog. ");
-		meaningPanel.add(meaningArea, BorderLayout.SOUTH);
+		meaningArea.setFont(new Font("Arial Unicode MS",Font.PLAIN,16));
+		meaningArea.setText("Word not found");
+		meaningPanel.add(meaningArea);
 		frame.add(meaningPanel);
 		frame.add(Box.createRigidArea(new Dimension(WIDTH, 10)));
 	}
@@ -107,7 +134,7 @@ class DictionaryUI {
 		tabs = new JTabbedPane();
 		tabs.setPreferredSize(new Dimension(WIDTH, 300));
 		for (int i = 0; i < tabNames.length; i++) {
-			JTextArea textArea = getTextArea(tabNames[i]);
+			FocusableTextArea textArea = getTextArea(tabNames[i]);
 			textArea.setLineWrap(true);
 			textArea.setWrapStyleWord(true);
 			textArea.setText("The quick brown fox jumped over a lazy dog. The quick brown fox jumped over a lazy dog. The quick brown fox jumped over a lazy dog. ");
@@ -117,7 +144,7 @@ class DictionaryUI {
 		frame.add(tabs);
 	}
 
-	private JTextArea getTextArea(String tabName) {
+	private FocusableTextArea getTextArea(String tabName) {
 		for (int i = 0; i < tabNames.length; i++) {
 			if (tabName.equals(tabNames[i])) {
 				return textAreas.get(i);
@@ -125,8 +152,8 @@ class DictionaryUI {
 		}
 		return null;
 	}
-	
-	private int indexOfArea(JTextArea area){
+
+	private int indexOfArea(FocusableTextArea area) {
 		for (int i = 0; i < textAreas.size(); i++) {
 			if (area.equals(textAreas.get(i))) {
 				return i;
@@ -138,20 +165,20 @@ class DictionaryUI {
 	class UITraversalPolicy extends FocusTraversalPolicy {
 
 		@Override
-		public Component getComponentAfter(Container aContainer, Component aComponent) {
-			if(aComponent.equals(wordField)){
+		public Component getComponentAfter(Container aContainer,
+				Component aComponent) {
+			if (aComponent.equals(wordField)) {
 				return searchButton;
 			}
-			if(aComponent.equals(searchButton)){
+			if (aComponent.equals(searchButton)) {
 				return textAreas.get(tabNames.length);
 			}
-			if(aComponent instanceof JTextArea){
-				int currentAreaIndex = indexOfArea((JTextArea) aComponent);
-				if(currentAreaIndex == tabNames.length){
+			if (aComponent instanceof FocusableTextArea) {
+				int currentAreaIndex = indexOfArea((FocusableTextArea) aComponent);
+				if (currentAreaIndex == tabNames.length) {
 					tabs.setSelectedIndex(0);
 					return getTextArea(tabNames[tabs.getSelectedIndex()]);
-				}
-				else if(currentAreaIndex < tabNames.length - 1){
+				} else if (currentAreaIndex < tabNames.length - 1) {
 					tabs.setSelectedIndex(currentAreaIndex + 1);
 					return getTextArea(tabNames[tabs.getSelectedIndex()]);
 				} else {
@@ -162,19 +189,21 @@ class DictionaryUI {
 		}
 
 		@Override
-		public Component getComponentBefore(Container aContainer, Component aComponent) {
-			if(aComponent.equals(wordField)){
+		public Component getComponentBefore(Container aContainer,
+				Component aComponent) {
+			if (aComponent.equals(wordField)) {
 				return wordField;
 			}
-			if(aComponent.equals(searchButton)){
+			if (aComponent.equals(searchButton)) {
 				return wordField;
 			}
-			if(aComponent instanceof JTextArea){
-				int currentAreaIndex = indexOfArea((JTextArea) aComponent);
-				if(currentAreaIndex == 0){
+			if (aComponent instanceof FocusableTextArea) {
+				int currentAreaIndex = indexOfArea((FocusableTextArea) aComponent);
+				if (currentAreaIndex == 0) {
 					return wordField;
 				}
-				if(currentAreaIndex < tabNames.length - 1 && currentAreaIndex > 0){
+				if (currentAreaIndex < tabNames.length - 1
+						&& currentAreaIndex > 0) {
 					return textAreas.get(currentAreaIndex - 1);
 				} else {
 					return searchPanel;
@@ -196,6 +225,24 @@ class DictionaryUI {
 		@Override
 		public Component getLastComponent(Container aContainer) {
 			return searchButton;
+		}
+	}
+
+	class FocusableTextArea extends JTextArea {
+		public FocusableTextArea() {
+			super();
+			this.addFocusListener(new FocusListener() {
+
+				@Override
+				public void focusLost(FocusEvent arg0) {
+
+				}
+
+				@Override
+				public void focusGained(FocusEvent arg0) {
+					((FocusableTextArea) (arg0.getComponent())).setCaretPosition(0);
+				}
+			});
 		}
 	}
 }
