@@ -3,6 +3,7 @@ package com.paypal.ophack.vidya.karna;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.FocusTraversalPolicy;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -11,6 +12,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -40,7 +42,10 @@ class DictionaryUI {
 	private JFrame mainFrame;
 	private JPanel searchPanel;
 	private JPanel meaningPanel;
-	private JLabel meaningLabel;
+	private JLabel meaningEnLabel;
+	private JTextArea meaningEnArea;
+	private JLabel meaningOthLabel;
+	private JTextArea meaningOthArea;
 	private JButton searchButton;
 	private JTextField wordField;
 	private JTabbedPane tabs;
@@ -48,7 +53,7 @@ class DictionaryUI {
 
 	public DictionaryUI() {
 		textAreas = new ArrayList<FocusableTextArea>();
-		for (int i = 0; i <= tabNames.length; i++) {
+		for (int i = 0; i < tabNames.length; i++) {
 			textAreas.add(new FocusableTextArea());
 		}
 	}
@@ -86,19 +91,29 @@ class DictionaryUI {
 				MeaningObject wordMeaning = store.getMeaningObject(wordField
 						.getText());
 				if (wordMeaning == null) {
-					textAreas.get(tabNames.length).setText("Word not found");
+					meaningEnArea.setText("Word not found");
 					return;
 				}
-				Map<String, String> meanings = wordMeaning.getMeaning_ta();
+				Map<String, String> meaningsEn = wordMeaning.getMeaning_en();
 				String meaning = "";
+				for (String m : meaningsEn.keySet()) {
+					meaning += m + " : " + meaningsEn.get(m) + "\n";
+				}
+				meaningEnArea.setText(meaning);
+				
+				Map<String, String> meanings = wordMeaning.getMeaning_ta();
+				meaning = "";
 				for (String m : meanings.keySet()) {
 					meaning += m + " : " + meanings.get(m) + "\n";
 				}
-				textAreas.get(tabNames.length).setText(null);
-				textAreas.get(tabNames.length).setText(meaning);
+				meaningOthArea.setText(meaning);
 				
-//				Set<String> synonyms = wordMeaning.getSysnonym_en();
-				
+				Set<String> synonyms = wordMeaning.getSysnonym_en();
+				String synonym = "";
+				for(String s : synonyms){
+					synonym += s + "\n";
+				}
+				textAreas.get(0).setText(synonym);
 			}
 		});
 		searchPanel.add(wordField);
@@ -113,19 +128,36 @@ class DictionaryUI {
 	private void addMeaningPanel(JPanel frame) {
 		meaningPanel = new JPanel();
 		meaningPanel.setLayout(new BoxLayout(meaningPanel, BoxLayout.Y_AXIS));
-		meaningLabel = new JLabel("Meaning");
-		meaningLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		meaningLabel.getAccessibleContext().setAccessibleDescription(
+		
+		JPanel titleLabels = new JPanel();
+		titleLabels.setLayout(new FlowLayout());
+		meaningEnLabel = new JLabel("Meaning English");
+		meaningEnLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		meaningEnLabel.getAccessibleContext().setAccessibleDescription(
 				"Meaning of word");
-		meaningPanel.add(meaningLabel);
-		final FocusableTextArea meaningArea = textAreas.get(tabNames.length);
-		meaningArea.setPreferredSize(new Dimension(WIDTH, 150));
-		meaningArea.setEditable(false);
-		meaningArea.setLineWrap(true);
-		meaningArea.setWrapStyleWord(true);
-		meaningArea.setFont(new Font("Arial Unicode MS",Font.PLAIN,16));
-		meaningArea.setText("Word not found");
-		meaningPanel.add(meaningArea);
+		titleLabels.add(meaningEnLabel);
+		titleLabels.add(Box.createRigidArea(new Dimension(10, 20)));
+		meaningOthLabel = new JLabel("Meaning Tamil");
+		meaningOthLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		meaningOthLabel.getAccessibleContext().setAccessibleDescription(
+				"Meaning of word");
+		titleLabels.add(meaningOthLabel);
+		meaningPanel.add(titleLabels);
+		
+		JPanel meaningAreas = new JPanel();
+		meaningAreas.setLayout(new FlowLayout());
+		meaningEnArea = new FocusableTextArea();
+		meaningEnArea.setPreferredSize(new Dimension(WIDTH/2, 150));
+		meaningEnArea.setText("Word not found");
+		meaningAreas.add(meaningEnArea);
+		meaningAreas.add(Box.createRigidArea(new Dimension(10, 150)));
+		
+		meaningOthArea = new FocusableTextArea();
+		meaningOthArea.setPreferredSize(new Dimension(WIDTH/2, 150));
+		meaningOthArea.setText("Word not found 1");
+		meaningAreas.add(meaningOthArea);
+		
+		meaningPanel.add(meaningAreas);
 		frame.add(meaningPanel);
 		frame.add(Box.createRigidArea(new Dimension(WIDTH, 10)));
 	}
@@ -171,7 +203,7 @@ class DictionaryUI {
 				return searchButton;
 			}
 			if (aComponent.equals(searchButton)) {
-				return textAreas.get(tabNames.length);
+				return meaningEnArea;
 			}
 			if (aComponent instanceof FocusableTextArea) {
 				int currentAreaIndex = indexOfArea((FocusableTextArea) aComponent);
@@ -243,6 +275,10 @@ class DictionaryUI {
 					((FocusableTextArea) (arg0.getComponent())).setCaretPosition(0);
 				}
 			});
+			this.setEditable(false);
+			this.setLineWrap(true);
+			this.setWrapStyleWord(true);
+			this.setFont(new Font("Arial Unicode MS",Font.PLAIN,16));
 		}
 	}
 }
