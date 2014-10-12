@@ -131,7 +131,45 @@ class DictionaryUI {
 		searchPanel.add(wordField);
 		searchButton = new JButton("Search");
 		searchButton.getAccessibleContext().setAccessibleDescription(
-				"Press enter to search");
+				"Press space to search");
+		searchButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				WordMeaningStore store = WordMeaningStore.getInstance();
+				MeaningObject wordMeaning = store.getMeaningObject(wordField
+						.getText().toLowerCase());
+				if (wordMeaning == null) {
+					meaningEnArea.setText("Word not found");
+					meaningOthArea.setText("Word not found");
+					synonymArea.setText("Word not found");
+					return;
+				}
+				Map<String, String> meaningsEn = wordMeaning.getMeaning_en();
+				int count = 1;
+				String meaning = "The " + wordMeaning.getPart_of_speech() + " has " + meaningsEn.keySet().size() + " senses\n\n"; 
+				for (String m : meaningsEn.keySet()) {
+					meaning += count++ + ". " + m + " : " + meaningsEn.get(m) + "\n";
+				}
+				meaningEnArea.setText(meaning);
+				
+				Map<String, String> meanings = wordMeaning.getMeaning_ta();
+				meaning = wordMeaning.getWord_tamil() + "\n";
+				count = 1;
+				for (String m : meanings.keySet()) {
+					meaning += count++ + ". " + m + " : " + meanings.get(m) + "\n";
+				}
+				meaningOthArea.setText(meaning);
+				
+				Set<String> synonyms = wordMeaning.getSysnonym_en();
+				String synonym = "";
+				for(String s : synonyms){
+					synonym += s + "\n";
+				}
+				synonymArea.setText(synonym);
+				meaningEnArea.requestFocus();
+			}
+		});
 		searchPanel.add(searchButton);
 		searchPanel.setPreferredSize(new Dimension(WIDTH, 70));
 		frame.add(searchPanel);
