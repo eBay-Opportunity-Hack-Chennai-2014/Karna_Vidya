@@ -7,11 +7,26 @@ import java.util.Set;
 public class MeaningObject {
 
 	String word;
+	String word_tamil;
 	Set<String> synonym_en;
 	//Set<String> synonym_ta;
 	String Part_of_speech;
 	Map<String, String> meaning_en;
 	Map<String, String> meaning_ta;
+	
+	
+	public String getWord_tamil() {
+		return word_tamil;
+	}
+	public void setWord_tamil(String word_tamil) {
+		this.word_tamil = word_tamil;
+	}
+	public Set<String> getSynonym_en() {
+		return synonym_en;
+	}
+	public void setSynonym_en(Set<String> synonym_en) {
+		this.synonym_en = synonym_en;
+	}
 	
 	public Set<String> getSysnonym_en() {
 		return synonym_en;

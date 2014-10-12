@@ -16,6 +16,9 @@ import com.google.gson.Gson;
 
 public class Parse {
 	
+	static Map<String, String> storeMeaning = new HashMap<String, String>();
+	static Map<String, String> Words = new HashMap<String, String>();
+	
 	static int hextoint(String hex){
 		int id = 0;
 		for (int h = 0; h < hex.length(); h= h+2){
@@ -27,8 +30,8 @@ public class Parse {
 	}
 	
 	
-	static void parsefile(String str, Writer writer){
-		str = str.replace(".", "").replace("'", "").replace("_", "").replace("\"", "");
+	static boolean parsefile(String str, Writer writer){
+		//str = str.replace(".", "").replace("'", "").replace("_", "").replace("\"", "");
 		MeaningObject meaningObject = new MeaningObject();
 		Map<String, ArrayList<String>> synonyms_map = new HashMap<String, ArrayList<String>>();
 		Map<String, ArrayList<String>> meaning_map = new HashMap<String, ArrayList<String>>();
@@ -36,7 +39,7 @@ public class Parse {
 		OHT.setSrcLangCode("en");
 		OHT.setResLangCode("ta");
 		
-		System.out.println(str);
+		//System.out.println(str);
 		
 		
 		
@@ -55,19 +58,23 @@ public class Parse {
 		//Set<String> synonyms_tamil = new HashSet<String>();
 		BufferedReader br = null;
 		
+		
 		try {
 			
-			for(int i = 0; i < numberOfDescription+1 ; i++){
-			String key = split[5+i+skip];
-			String sCurrentLine;
-			br = new BufferedReader(new FileReader("C:/Users/kthethi/Workspace_Vella_DT/Dictionary/src/data.adv"));
-				//ArrayList<String> meaning = new ArrayList<String>();
-				while ((sCurrentLine = br.readLine()) != null) {
-					sCurrentLine = sCurrentLine.replace(".", "").replace("'", "").replace("_", "").replace("\"", "");
-					String[] sentence_split = sCurrentLine.split("[|]");
+			OHT.setSrcString(word);
+			String word_tamil = OHT.getTranslatedText();
+
+			
+			for(int i = 0; i < numberOfDescription ; i++){
+			String key = split[5+i+skip+1];
+			String CurrentLine;
+					
+					CurrentLine = storeMeaning.get(key);//
+					CurrentLine = CurrentLine.replace(".", "").replace("'", "").replace("_", "").replace("\"", "");
+					String[] sentence_split = CurrentLine.split("[|]");
 					String[] synonym_split = sentence_split[0].split(" ");
 					if(key.equals(synonym_split[0])){
-						System.out.println();
+						//System.out.println();
 						int numberOfSynonym = hextoint(synonym_split[3]);
 						for (int j = 0; j < numberOfSynonym*2 ; j+=2){
 							if(synonym_split[4+j].equals(word)){
@@ -78,28 +85,33 @@ public class Parse {
 							//synonyms_tamil.add(OHT.getTranslatedText());
 						}
 						String[] meaning_sentence = sentence_split[1].split(";");
+						String tamil_meaning="";
 						if(meaning_sentence.length==1){
 							meaning.put(meaning_sentence[0], "");
 						
 							OHT.setSrcString(meaning_sentence[0]);
-							String tamil1 = OHT.getTranslatedText();
+							tamil_meaning = OHT.getTranslatedText();
 							
-							meaning_tamil.put(tamil1, "");
+							meaning_tamil.put(tamil_meaning, "");
 						}
 						if(meaning_sentence.length==2){
 							meaning.put(meaning_sentence[0], meaning_sentence[1]);
 						
 							OHT.setSrcString(meaning_sentence[0]);
-							String tamil1 = OHT.getTranslatedText();
+							tamil_meaning = OHT.getTranslatedText();
 							OHT.setSrcString(meaning_sentence[1]);
-							String tamil2 = OHT.getTranslatedText();
+							String tamil_sentence = OHT.getTranslatedText();
 						
-							meaning_tamil.put(tamil1, tamil2);
+							meaning_tamil.put(tamil_meaning, tamil_sentence);
+						}
+						if(tamil_meaning.contains("ERROR OCCURED WHILE FETCHING")){
+							System.out.println("ab lagg gyi");
+							return false;
 						}
 					}
 					//System.out.println("kamal");
 					
-				}
+				
 				//System.out.println("kamal");
 			}/*
 				System.out.println(synonyms);
@@ -107,6 +119,8 @@ public class Parse {
 				System.out.println(synonyms_tamil);
 				System.out.println(meaning_tamil);*/
 				meaningObject.setWord(word);
+				meaningObject.setWord_tamil(word_tamil);
+				
 				meaningObject.setSysnonym_en(synonyms);
 				//meaningObject.setSysnonym_ta(synonyms_tamil);
 				meaningObject.setPart_of_speech("adv");
@@ -115,7 +129,7 @@ public class Parse {
 				meaningObject.setMeaning_ta(meaning_tamil);				
 			
 				Gson gson = new Gson();
-				System.out.println(gson.toJson(meaningObject).toString());
+				//System.out.println(gson.toJson(meaningObject).toString());
 			    writer.write(gson.toJson(meaningObject).toString());
 			    writer.write("\n");
 				
@@ -127,29 +141,77 @@ public class Parse {
 					if (br != null)br.close();
 				} catch (IOException ex) {
 					ex.printStackTrace();
-				}
+				
 			}
+			}
+		return true;
 		}
 	
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		 
 		BufferedReader br = null;
 		Writer writer = null;
 
-		
+		try {
+			 
+			  String sCurrentLine;
+	 
+				br = new BufferedReader(new FileReader("C:/Users/kthethi/Workspace_Vella_DT/Karna_Vidya/src/data_all.txt"));
+	 
+				while ((sCurrentLine = br.readLine()) != null) {
+					storeMeaning.put(sCurrentLine.split(" ")[0], sCurrentLine);
+					
+					//System.out.println(sCurrentLine);
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (br != null)br.close();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			}
+		try {
+			 
+			  String sCurrentLine;
+	 
+				br = new BufferedReader(new FileReader("C:/Users/kthethi/Workspace_Vella_DT/Karna_Vidya/src/index_all.txt"));
+	 
+				while ((sCurrentLine = br.readLine()) != null) {
+					Words.put(sCurrentLine.split(" ")[0], sCurrentLine);
+					
+					System.out.println(sCurrentLine);
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (br != null)br.close();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			}
 		try {
  
 		    writer = new BufferedWriter(new OutputStreamWriter(
-			          new FileOutputStream("WordMeaning.txt"), "utf-8"));
+			          new FileOutputStream("5000_meaning.txt", true), "utf-8"));
 		
 			String sCurrentLine;
  
-			br = new BufferedReader(new FileReader("C:/Users/kthethi/Workspace_Vella_DT/Dictionary/src/index1.adv"));
+			br = new BufferedReader(new FileReader("C:/Users/kthethi/Workspace_Vella_DT/Karna_Vidya/src/5000.txt"));
  
+			//int i =1;
 			while ((sCurrentLine = br.readLine()) != null) {
-				parsefile(sCurrentLine, writer);
-				
+				String s = sCurrentLine;
+					if(!parsefile(sCurrentLine, writer)){
+						break;
+					}
+				//	i++;
+				//}
 				//System.out.println(sCurrentLine);
 			}
 			writer.close();
