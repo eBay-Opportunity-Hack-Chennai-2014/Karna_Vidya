@@ -104,16 +104,18 @@ class DictionaryUI {
 					return;
 				}
 				Map<String, String> meaningsEn = wordMeaning.getMeaning_en();
+				int count = 1;
 				String meaning = "The " + wordMeaning.getPart_of_speech() + " has " + meaningsEn.keySet().size() + " senses\n\n"; 
 				for (String m : meaningsEn.keySet()) {
-					meaning += m + " : " + meaningsEn.get(m) + "\n";
+					meaning += count++ + ". " + m + " : " + meaningsEn.get(m) + "\n";
 				}
 				meaningEnArea.setText(meaning);
 				
 				Map<String, String> meanings = wordMeaning.getMeaning_ta();
 				meaning = wordMeaning.getWord_tamil() + "\n";
+				count = 1;
 				for (String m : meanings.keySet()) {
-					meaning += m + " : " + meanings.get(m) + "\n";
+					meaning += count++ + ". " + m + " : " + meanings.get(m) + "\n";
 				}
 				meaningOthArea.setText(meaning);
 				
