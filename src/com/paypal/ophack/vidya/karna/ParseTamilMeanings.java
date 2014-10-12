@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.HashMap;
@@ -41,10 +42,8 @@ public class ParseTamilMeanings {
 
 			String sCurrentLine;
 
-			br = new BufferedReader(
-					new FileReader(
-							"C:/Users/kthethi/Workspace_Vella_DT/Karna_Vidya/src/data_all.txt"));
-
+			br = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream("resources/data_all.txt")));
+			
 			while ((sCurrentLine = br.readLine()) != null) {
 				storeMeaning.put(sCurrentLine.split(" ")[0], sCurrentLine);
 
@@ -66,10 +65,8 @@ public class ParseTamilMeanings {
 
 			String sCurrentLine;
 
-			br = new BufferedReader(
-					new FileReader(
-							"C:/Users/kthethi/Workspace_Vella_DT/Karna_Vidya/src/index_all.txt"));
-
+			br = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream("resources/index_all.txt")));
+			
 			while ((sCurrentLine = br.readLine()) != null) {
 				Words.put(sCurrentLine.split(" ")[0], sCurrentLine);
 
@@ -103,14 +100,11 @@ public class ParseTamilMeanings {
 			String FirstCurrentLine;
 			String SecondCurrentLine;
 
-			br1 = new BufferedReader(
-					new FileReader(
-							"C:/Users/kthethi/Workspace_Vella_DT/Karna_Vidya/src/5000_meaning.txt"));
-			br2 = new BufferedReader(
-					new FileReader(
-							"C:/Users/kthethi/Workspace_Vella_DT/Karna_Vidya/src/5000_meaning_tamil.txt"));
+			br1 = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream("resources/5000_meaning.txt")));
+			br2 = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream("resources/5000_meaning_tamil.txt")));
+			
 			writer = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream("Dictionary1.0", true), "utf-8"));
+					new FileOutputStream("WordMeaning.txt", true), "utf-8"));
 
 			String wordMeaningENString = "";
 			String wordMeaningTAString = "";
@@ -132,7 +126,7 @@ public class ParseTamilMeanings {
 							.split(";");
 
 					wordDetailObject
-							.setSysnonym_en(GetSynonyms(wordMeaningENArray[1]));
+							.setSysnonym_en(GetSynonyms(wordMeaningENArray[1], wordDetailObject));
 
 					for (int i = 2; i < wordMeaningENArray.length; i++) {
 						if ((wordMeaningENArray.length - i) == 1) {
@@ -180,7 +174,7 @@ public class ParseTamilMeanings {
 
 	}
 
-	private static HashSet<String> GetSynonyms(String word) {
+	private static HashSet<String> GetSynonyms(String word, MeaningObject wordDetailObject) {
 		HashSet<String> synonyms = new HashSet<String>();
 
 		String str = Words.get(word);//
@@ -192,7 +186,23 @@ public class ParseTamilMeanings {
 
 			String[] split = str.split(" ");
 			String word_check = split[0];
-
+			switch(split[1]){
+			case "n":
+				wordDetailObject.setPart_of_speech("noun");
+				break;
+			case "a":
+				wordDetailObject.setPart_of_speech("adjective");
+				break;
+			case "r":
+				wordDetailObject.setPart_of_speech("adverb");
+				break;
+			case "v":
+				wordDetailObject.setPart_of_speech("verb");
+				break;
+			default :
+				wordDetailObject.setPart_of_speech("");
+				break;	
+			}
 			int numberOfDescription = Integer.parseInt(split[2]);
 			int skip = Integer.parseInt(split[3]);
 			// System.out.println(numberOfDescription);
