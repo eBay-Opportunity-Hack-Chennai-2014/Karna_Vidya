@@ -114,7 +114,7 @@ class DictionaryUI {
 				meaningEnArea.setText(meaning);
 				
 				Map<String, String> meanings = wordMeaning.getMeaning_ta();
-				meaning = "";
+				meaning = wordMeaning.getWord_tamil() + "\n";
 				for (String m : meanings.keySet()) {
 					meaning += m + " : " + meanings.get(m) + "\n";
 				}
@@ -161,13 +161,11 @@ class DictionaryUI {
 		meaningAreas.setLayout(new FlowLayout());
 		meaningEnArea = new FocusableTextArea();
 		meaningEnArea.setPreferredSize(new Dimension(WIDTH/2, 150));
-		meaningEnArea.setText("Word not found");
 		meaningAreas.add(meaningEnArea);
 		meaningAreas.add(Box.createRigidArea(new Dimension(10, 150)));
 		
 		meaningOthArea = new FocusableTextArea();
 		meaningOthArea.setPreferredSize(new Dimension(WIDTH/2, 150));
-		meaningOthArea.setText("Word not found 1");
 		meaningAreas.add(meaningOthArea);
 		
 		meaningPanel.add(meaningAreas);
