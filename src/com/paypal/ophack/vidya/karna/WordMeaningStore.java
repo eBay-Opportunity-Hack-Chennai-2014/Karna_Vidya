@@ -27,7 +27,7 @@ public class WordMeaningStore {
 		Gson gson = new Gson();
 		MeaningObject wordObject;
 		try {
-			br = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("resources/Dictionary.txt")));
+			br = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("resources/WordMeaning.txt")));
 			while ((word = br.readLine())!=null) {
 				wordObject = gson.fromJson(word, MeaningObject.class);
 				wordMap.put(wordObject.getWord(), wordObject);

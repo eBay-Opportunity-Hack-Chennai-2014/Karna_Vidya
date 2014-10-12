@@ -99,7 +99,7 @@ class DictionaryUI {
 			public void actionPerformed(ActionEvent e) {
 				WordMeaningStore store = WordMeaningStore.getInstance();
 				MeaningObject wordMeaning = store.getMeaningObject(wordField
-						.getText());
+						.getText().toLowerCase());
 				if (wordMeaning == null) {
 					meaningEnArea.setText("Word not found");
 					meaningOthArea.setText("Word not found");
@@ -107,7 +107,7 @@ class DictionaryUI {
 					return;
 				}
 				Map<String, String> meaningsEn = wordMeaning.getMeaning_en();
-				String meaning = "";
+				String meaning = "The " + wordMeaning.getPart_of_speech() + " has " + meaningsEn.keySet().size() + "senses\n\n"; 
 				for (String m : meaningsEn.keySet()) {
 					meaning += m + " : " + meaningsEn.get(m) + "\n";
 				}
@@ -161,12 +161,14 @@ class DictionaryUI {
 		meaningAreas.setLayout(new FlowLayout());
 		meaningEnArea = new FocusableTextArea();
 		meaningEnArea.setPreferredSize(new Dimension(WIDTH/2, 150));
-		meaningAreas.add(meaningEnArea);
+		JScrollPane enMeaningScroll = new JScrollPane(meaningEnArea);
+		meaningAreas.add(enMeaningScroll);
 		meaningAreas.add(Box.createRigidArea(new Dimension(10, 150)));
 		
 		meaningOthArea = new FocusableTextArea();
 		meaningOthArea.setPreferredSize(new Dimension(WIDTH/2, 150));
-		meaningAreas.add(meaningOthArea);
+		JScrollPane othMeaningScroll = new JScrollPane(meaningOthArea);
+		meaningAreas.add(othMeaningScroll);
 		
 		meaningPanel.add(meaningAreas);
 		frame.add(meaningPanel);
@@ -236,7 +238,7 @@ class DictionaryUI {
 					@Override
 					public void focusGained(FocusEvent arg0) {
 						CloseableHttpClient httpclient = HttpClientBuilder.create().build();
-						String url = "http://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles="+getUrlEncoded(wordField.getText());
+						String url = "http://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles="+getUrlEncoded(wordField.getText().toLowerCase());
 						HttpGet getRequest = new HttpGet(url);;
 						try {
 							HttpResponse resp = httpclient.execute(getRequest);
