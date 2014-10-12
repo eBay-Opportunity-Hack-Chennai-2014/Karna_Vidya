@@ -14,7 +14,7 @@ import java.util.Set;
 
 import com.google.gson.Gson;
 
-public class parse {
+public class Parse {
 	
 	static Map<String, String> storeMeaning = new HashMap<String, String>();
 	static Map<String, String> Words = new HashMap<String, String>();
