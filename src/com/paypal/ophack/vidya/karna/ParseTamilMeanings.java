@@ -34,18 +34,18 @@ public class ParseTamilMeanings {
 
 	public static void main(String[] args) {
 
+		storeWordMeaningInHashMap("resources/data_all.txt");
+		storeWordKeyInHashMap("resources/index_all.txt");
+		ReadWordFileFilldictionary("");
+	}
+
+	private static void storeWordMeaningInHashMap(String string) {
 		BufferedReader br = null;
-
 		try {
-
 			String sCurrentLine;
-
-			br = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream("resources/data_all.txt")));
-			
+			br = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream(string)));
 			while ((sCurrentLine = br.readLine()) != null) {
 				storeMeaning.put(sCurrentLine.split(" ")[0], sCurrentLine);
-
-				// System.out.println(sCurrentLine);
 			}
 
 		} catch (IOException e) {
@@ -58,20 +58,19 @@ public class ParseTamilMeanings {
 				ex.printStackTrace();
 			}
 		}
+	}
 
+	private static void storeWordKeyInHashMap(String string) {
+		BufferedReader br = null;
 		try {
 
 			String sCurrentLine;
 
-			br = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream("resources/index_all.txt")));
+			br = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream(string)));
 			
 			while ((sCurrentLine = br.readLine()) != null) {
 				Words.put(sCurrentLine.split(" ")[0], sCurrentLine);
-
-				// System.out.println();
 			}
-			System.out.println(Words.get("regulator"));
-
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -82,9 +81,6 @@ public class ParseTamilMeanings {
 				ex.printStackTrace();
 			}
 		}
-
-		ReadWordFileFilldictionary("");
-
 	}
 
 	private static void ReadWordFileFilldictionary(String string) {
@@ -102,7 +98,7 @@ public class ParseTamilMeanings {
 			br2 = new BufferedReader(new InputStreamReader(ParseTamilMeanings.class.getClassLoader().getResourceAsStream("resources/5000_meaning_tamil.txt")));
 			
 			writer = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream("WordMeaning.txt", true), "utf-8"));
+					new FileOutputStream("WordMeaning_final.txt", true), "utf-8"));
 
 			String wordMeaningENString = "";
 			String wordMeaningTAString = "";
@@ -126,7 +122,7 @@ public class ParseTamilMeanings {
 					wordDetailObject
 							.setSysnonym_en(GetSynonyms(wordMeaningENArray[1], wordDetailObject));
 
-					for (int i = 2; i < wordMeaningENArray.length; i++) {
+					for (int i = 2; i < wordMeaningENArray.length; i+=2) {
 						if ((wordMeaningENArray.length - i) == 1) {
 							meaning.put(wordMeaningENArray[i], "");
 						} else {
@@ -247,7 +243,6 @@ public class ParseTamilMeanings {
 			 * System.out.println(gson.toJson(meaningObject).toString());
 			 * writer.write(gson.toJson(meaningObject).toString());
 			 */
-			// TODO Auto-generated method stub
 		}
 		return synonyms;
 
