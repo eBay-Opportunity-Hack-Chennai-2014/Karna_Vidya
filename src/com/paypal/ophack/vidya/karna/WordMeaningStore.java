@@ -1,10 +1,9 @@
 package com.paypal.ophack.vidya.karna;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import com.google.gson.Gson;
@@ -28,7 +27,7 @@ public class WordMeaningStore {
 		Gson gson = new Gson();
 		MeaningObject wordObject;
 		try {
-			br = new BufferedReader(new FileReader(new File("WordMeaning.txt")));
+			br = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("Dictionary.txt")));
 			while ((word = br.readLine())!=null) {
 				wordObject = gson.fromJson(word, MeaningObject.class);
 				wordMap.put(wordObject.getWord(), wordObject);
@@ -36,7 +35,6 @@ public class WordMeaningStore {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (JsonSyntaxException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

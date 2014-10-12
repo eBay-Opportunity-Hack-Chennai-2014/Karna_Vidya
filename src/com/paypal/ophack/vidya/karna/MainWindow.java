@@ -102,6 +102,8 @@ class DictionaryUI {
 						.getText());
 				if (wordMeaning == null) {
 					meaningEnArea.setText("Word not found");
+					meaningOthArea.setText("Word not found");
+					synonymArea.setText("Word not found");
 					return;
 				}
 				Map<String, String> meaningsEn = wordMeaning.getMeaning_en();
@@ -250,6 +252,7 @@ class DictionaryUI {
 								Entry<String, JsonElement> entry = it.next();
 								article = gson.fromJson(entry.getValue().toString(), JsonObject.class).get("extract").getAsString();
 							}
+							article = article.replaceAll("<[^>]*>", "");
 							wikiArea.setText(article);
 						} catch (ClientProtocolException e) {
 							wikiArea.setText("No details found");
@@ -271,7 +274,6 @@ class DictionaryUI {
 		@Override
 		public Component getComponentAfter(Container aContainer,
 				Component aComponent) {
-			System.out.println(aComponent);
 			if (aComponent.equals(wordField)) {
 				return searchButton;
 			}
