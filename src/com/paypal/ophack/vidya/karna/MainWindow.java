@@ -10,19 +10,35 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public class MainWindow {
 	public static void main(String[] args) {
@@ -49,21 +65,15 @@ class DictionaryUI {
 	private JButton searchButton;
 	private JTextField wordField;
 	private JTabbedPane tabs;
-	private ArrayList<FocusableTextArea> textAreas;
-
-	public DictionaryUI() {
-		textAreas = new ArrayList<FocusableTextArea>();
-		for (int i = 0; i < tabNames.length; i++) {
-			textAreas.add(new FocusableTextArea());
-		}
-	}
+	private FocusableTextArea synonymArea;
+	private JEditorPane wikiArea;
 
 	public void render() {
 		mainFrame = new JFrame();
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setBounds(100, 100, 700, 500);
 		mainFrame.setTitle("WordSearch");
-		// mainFrame.setFocusTraversalPolicy(new UITraversalPolicy());
+		mainFrame.setFocusTraversalPolicy(new UITraversalPolicy());
 		initUI();
 		mainFrame.pack();
 		mainFrame.setVisible(true);
@@ -113,7 +123,8 @@ class DictionaryUI {
 				for(String s : synonyms){
 					synonym += s + "\n";
 				}
-				textAreas.get(0).setText(synonym);
+				synonymArea.setText(synonym);
+				meaningEnArea.requestFocus();
 			}
 		});
 		searchPanel.add(wordField);
@@ -165,33 +176,94 @@ class DictionaryUI {
 	private void addTabbedMenu(JPanel frame) {
 		tabs = new JTabbedPane();
 		tabs.setPreferredSize(new Dimension(WIDTH, 300));
+		tabs.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				
+			}
+			
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				if (tabs.getSelectedIndex() == 0) {
+					synonymArea.requestFocus();
+				} else if (tabs.getSelectedIndex() == 1){
+					wikiArea.requestFocus();
+				}
+			}
+		});
 		for (int i = 0; i < tabNames.length; i++) {
-			FocusableTextArea textArea = getTextArea(tabNames[i]);
-			textArea.setLineWrap(true);
-			textArea.setWrapStyleWord(true);
-			textArea.setText("The quick brown fox jumped over a lazy dog. The quick brown fox jumped over a lazy dog. The quick brown fox jumped over a lazy dog. ");
-			textArea.setEditable(false);
-			tabs.addTab(tabNames[i], textArea);
+			Component component = null;
+			if(i == 0){
+				synonymArea = new FocusableTextArea();
+				synonymArea.setPreferredSize(new Dimension(WIDTH, 200));
+				component = synonymArea;
+			} else if (i == 1){
+				wikiArea = new JEditorPane();
+				wikiArea.setEditable(false);
+				wikiArea.setContentType("text/html");
+				wikiArea.addFocusListener(new FocusListener() {
+					public String getResponseString(HttpResponse response) {
+						BufferedReader br;
+						try {
+							br = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+						} catch (IllegalStateException | IOException e1) {
+							return null;
+						}
+						String responseStr = "";
+				        String line = "";
+				        try {
+							while ((line = br.readLine()) != null) {
+							    responseStr += line;
+							}
+							br.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}        
+				        
+						return responseStr;
+					}
+					
+					public String getUrlEncoded(String str){
+						return str.replaceAll(" ", "%20");
+					}
+					
+					@Override
+					public void focusLost(FocusEvent arg0) {
+						
+					}
+					
+					@SuppressWarnings("unchecked")
+					@Override
+					public void focusGained(FocusEvent arg0) {
+						CloseableHttpClient httpclient = HttpClientBuilder.create().build();
+						String url = "http://en.wikipedia.org/w/api.php?action=query&prop=extracts&format=json&exintro=&titles="+getUrlEncoded(wordField.getText());
+						HttpGet getRequest = new HttpGet(url);;
+						try {
+							HttpResponse resp = httpclient.execute(getRequest);
+							String responseJson = getResponseString(resp);
+							Gson gson = new Gson();
+							JsonObject obj = gson.fromJson(responseJson, JsonObject.class);
+							Set<Entry<String, JsonElement>> entries = gson.fromJson(gson.fromJson(obj.get("query"), JsonObject.class).get("pages"), JsonObject.class).entrySet();
+							Iterator<Entry<String, JsonElement>> it = entries.iterator();
+							String article = null;
+							if(it.hasNext()){
+								Entry<String, JsonElement> entry = it.next();
+								article = gson.fromJson(entry.getValue().toString(), JsonObject.class).get("extract").getAsString();
+							}
+							wikiArea.setText(article);
+						} catch (ClientProtocolException e) {
+							wikiArea.setText("No details found");
+						} catch (IOException e) {
+							wikiArea.setText("No details found");
+						}
+						wikiArea.setCaretPosition(0);
+					}
+				});
+				component = new JScrollPane(wikiArea);
+			}
+			tabs.addTab(tabNames[i], component);
 		}
 		frame.add(tabs);
-	}
-
-	private FocusableTextArea getTextArea(String tabName) {
-		for (int i = 0; i < tabNames.length; i++) {
-			if (tabName.equals(tabNames[i])) {
-				return textAreas.get(i);
-			}
-		}
-		return null;
-	}
-
-	private int indexOfArea(FocusableTextArea area) {
-		for (int i = 0; i < textAreas.size(); i++) {
-			if (area.equals(textAreas.get(i))) {
-				return i;
-			}
-		}
-		return -1;
 	}
 
 	class UITraversalPolicy extends FocusTraversalPolicy {
@@ -199,23 +271,26 @@ class DictionaryUI {
 		@Override
 		public Component getComponentAfter(Container aContainer,
 				Component aComponent) {
+			System.out.println(aComponent);
 			if (aComponent.equals(wordField)) {
 				return searchButton;
 			}
-			if (aComponent.equals(searchButton)) {
+			else if (aComponent.equals(searchButton)) {
 				return meaningEnArea;
 			}
-			if (aComponent instanceof FocusableTextArea) {
-				int currentAreaIndex = indexOfArea((FocusableTextArea) aComponent);
-				if (currentAreaIndex == tabNames.length) {
-					tabs.setSelectedIndex(0);
-					return getTextArea(tabNames[tabs.getSelectedIndex()]);
-				} else if (currentAreaIndex < tabNames.length - 1) {
-					tabs.setSelectedIndex(currentAreaIndex + 1);
-					return getTextArea(tabNames[tabs.getSelectedIndex()]);
-				} else {
-					return wordField;
-				}
+			else if (aComponent.equals(meaningEnArea)){
+				return meaningOthArea;
+			}
+			else if (aComponent.equals(meaningOthArea)) {
+				tabs.setSelectedIndex(0);
+				return synonymArea;
+			}
+			else if (aComponent.equals(synonymArea)){
+				tabs.setSelectedIndex(1);
+				return wikiArea;
+			}
+			else if (aComponent.equals(wikiArea)){
+				return wordField;
 			}
 			return null;
 		}
@@ -226,20 +301,21 @@ class DictionaryUI {
 			if (aComponent.equals(wordField)) {
 				return wordField;
 			}
-			if (aComponent.equals(searchButton)) {
+			else if (aComponent.equals(searchButton)) {
 				return wordField;
 			}
-			if (aComponent instanceof FocusableTextArea) {
-				int currentAreaIndex = indexOfArea((FocusableTextArea) aComponent);
-				if (currentAreaIndex == 0) {
-					return wordField;
-				}
-				if (currentAreaIndex < tabNames.length - 1
-						&& currentAreaIndex > 0) {
-					return textAreas.get(currentAreaIndex - 1);
-				} else {
-					return searchPanel;
-				}
+			else if (aComponent.equals(meaningEnArea)){
+				return wordField;
+			}
+			else if (aComponent.equals(meaningOthArea)) {
+				return meaningEnArea;
+			}
+			else if (aComponent.equals(synonymArea)){
+				return meaningOthArea;
+			}
+			else if (aComponent.equals(wikiArea)){
+				tabs.setSelectedIndex(0);
+				return synonymArea;
 			}
 			return null;
 		}
