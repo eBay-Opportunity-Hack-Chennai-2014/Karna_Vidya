@@ -1,9 +1,9 @@
 package com.paypal.ophack.vidya.karna;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.FocusTraversalPolicy;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -18,12 +18,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -54,17 +52,16 @@ public class MainWindow {
 class DictionaryUI {
 	private int WIDTH = 600;
 
-	private String[] tabNames = { "Synonyms", "Wikipedia" };
+	private String[] tabOthNames = { "Synonyms", "Wikipedia" };
+	private String[] tabMeaningNames = { "Meaning English", "Meaning Tamil" };
 	private JFrame mainFrame;
 	private JPanel searchPanel;
-	private JPanel meaningPanel;
-	private JLabel meaningEnLabel;
-	private JTextArea meaningEnArea;
-	private JLabel meaningOthLabel;
-	private JTextArea meaningOthArea;
 	private JButton searchButton;
 	private JTextField wordField;
-	private JTabbedPane tabs;
+	private JTabbedPane tabsMeaning;
+	private JTextArea meaningEnArea;
+	private JTextArea meaningOthArea;
+	private JTabbedPane tabsOthers;
 	private FocusableTextArea synonymArea;
 	private JEditorPane wikiArea;
 
@@ -107,7 +104,7 @@ class DictionaryUI {
 					return;
 				}
 				Map<String, String> meaningsEn = wordMeaning.getMeaning_en();
-				String meaning = "The " + wordMeaning.getPart_of_speech() + " has " + meaningsEn.keySet().size() + "senses\n\n"; 
+				String meaning = "The " + wordMeaning.getPart_of_speech() + " has " + meaningsEn.keySet().size() + " senses\n\n"; 
 				for (String m : meaningsEn.keySet()) {
 					meaning += m + " : " + meaningsEn.get(m) + "\n";
 				}
@@ -139,46 +136,9 @@ class DictionaryUI {
 	}
 
 	private void addMeaningPanel(JPanel frame) {
-		meaningPanel = new JPanel();
-		meaningPanel.setLayout(new BoxLayout(meaningPanel, BoxLayout.Y_AXIS));
-		
-		JPanel titleLabels = new JPanel();
-		titleLabels.setLayout(new FlowLayout());
-		meaningEnLabel = new JLabel("Meaning English");
-		meaningEnLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		meaningEnLabel.getAccessibleContext().setAccessibleDescription(
-				"Meaning of word");
-		titleLabels.add(meaningEnLabel);
-		titleLabels.add(Box.createRigidArea(new Dimension(10, 20)));
-		meaningOthLabel = new JLabel("Meaning Tamil");
-		meaningOthLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		meaningOthLabel.getAccessibleContext().setAccessibleDescription(
-				"Meaning of word");
-		titleLabels.add(meaningOthLabel);
-		meaningPanel.add(titleLabels);
-		
-		JPanel meaningAreas = new JPanel();
-		meaningAreas.setLayout(new FlowLayout());
-		meaningEnArea = new FocusableTextArea();
-		meaningEnArea.setPreferredSize(new Dimension(WIDTH/2, 150));
-		JScrollPane enMeaningScroll = new JScrollPane(meaningEnArea);
-		meaningAreas.add(enMeaningScroll);
-		meaningAreas.add(Box.createRigidArea(new Dimension(10, 150)));
-		
-		meaningOthArea = new FocusableTextArea();
-		meaningOthArea.setPreferredSize(new Dimension(WIDTH/2, 150));
-		JScrollPane othMeaningScroll = new JScrollPane(meaningOthArea);
-		meaningAreas.add(othMeaningScroll);
-		
-		meaningPanel.add(meaningAreas);
-		frame.add(meaningPanel);
-		frame.add(Box.createRigidArea(new Dimension(WIDTH, 10)));
-	}
-
-	private void addTabbedMenu(JPanel frame) {
-		tabs = new JTabbedPane();
-		tabs.setPreferredSize(new Dimension(WIDTH, 300));
-		tabs.addFocusListener(new FocusListener() {
+		tabsMeaning = new JTabbedPane();
+		tabsMeaning.setPreferredSize(new Dimension(WIDTH, 300));
+		tabsMeaning.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent arg0) {
 				
@@ -186,14 +146,48 @@ class DictionaryUI {
 			
 			@Override
 			public void focusGained(FocusEvent arg0) {
-				if (tabs.getSelectedIndex() == 0) {
+				if (tabsMeaning.getSelectedIndex() == 0) {
+					meaningEnArea.requestFocus();
+				} else if (tabsMeaning.getSelectedIndex() == 1){
+					meaningOthArea.requestFocus();
+				}
+			}
+		});
+		for (int i = 0; i < tabMeaningNames.length; i++) {
+			Component component = null;
+			if(i == 0){
+				meaningEnArea = new FocusableTextArea();
+				meaningEnArea.setPreferredSize(new Dimension(WIDTH, 200));
+				component = meaningEnArea;
+			} else if (i == 1){
+				meaningOthArea = new FocusableTextArea();
+				meaningOthArea.setPreferredSize(new Dimension(WIDTH, 200));
+				component = meaningOthArea;
+			}
+			tabsMeaning.addTab(tabMeaningNames[i], component);
+		}
+		frame.add(tabsMeaning);
+	}
+
+	private void addTabbedMenu(JPanel frame) {
+		tabsOthers = new JTabbedPane();
+		tabsOthers.setPreferredSize(new Dimension(WIDTH, 300));
+		tabsOthers.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent arg0) {
+				
+			}
+			
+			@Override
+			public void focusGained(FocusEvent arg0) {
+				if (tabsOthers.getSelectedIndex() == 0) {
 					synonymArea.requestFocus();
-				} else if (tabs.getSelectedIndex() == 1){
+				} else if (tabsOthers.getSelectedIndex() == 1){
 					wikiArea.requestFocus();
 				}
 			}
 		});
-		for (int i = 0; i < tabNames.length; i++) {
+		for (int i = 0; i < tabOthNames.length; i++) {
 			Component component = null;
 			if(i == 0){
 				synonymArea = new FocusableTextArea();
@@ -234,7 +228,6 @@ class DictionaryUI {
 						
 					}
 					
-					@SuppressWarnings("unchecked")
 					@Override
 					public void focusGained(FocusEvent arg0) {
 						CloseableHttpClient httpclient = HttpClientBuilder.create().build();
@@ -264,9 +257,9 @@ class DictionaryUI {
 				});
 				component = new JScrollPane(wikiArea);
 			}
-			tabs.addTab(tabNames[i], component);
+			tabsOthers.addTab(tabOthNames[i], component);
 		}
-		frame.add(tabs);
+		frame.add(tabsOthers);
 	}
 
 	class UITraversalPolicy extends FocusTraversalPolicy {
@@ -278,17 +271,19 @@ class DictionaryUI {
 				return searchButton;
 			}
 			else if (aComponent.equals(searchButton)) {
+				tabsMeaning.setSelectedIndex(0);
 				return meaningEnArea;
 			}
 			else if (aComponent.equals(meaningEnArea)){
+				tabsMeaning.setSelectedIndex(1);
 				return meaningOthArea;
 			}
 			else if (aComponent.equals(meaningOthArea)) {
-				tabs.setSelectedIndex(0);
+				tabsOthers.setSelectedIndex(0);
 				return synonymArea;
 			}
 			else if (aComponent.equals(synonymArea)){
-				tabs.setSelectedIndex(1);
+				tabsOthers.setSelectedIndex(1);
 				return wikiArea;
 			}
 			else if (aComponent.equals(wikiArea)){
@@ -310,13 +305,15 @@ class DictionaryUI {
 				return wordField;
 			}
 			else if (aComponent.equals(meaningOthArea)) {
+				tabsMeaning.setSelectedIndex(0);
 				return meaningEnArea;
 			}
 			else if (aComponent.equals(synonymArea)){
+				tabsMeaning.setSelectedIndex(1);
 				return meaningOthArea;
 			}
 			else if (aComponent.equals(wikiArea)){
-				tabs.setSelectedIndex(0);
+				tabsOthers.setSelectedIndex(0);
 				return synonymArea;
 			}
 			return null;

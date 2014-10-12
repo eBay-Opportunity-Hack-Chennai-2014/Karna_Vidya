@@ -8,7 +8,6 @@ public class MeaningObject {
 	String word;
 	String word_tamil;
 	Set<String> synonym_en;
-	//Set<String> synonym_ta;
 	String Part_of_speech;
 	Map<String, String> meaning_en;
 	Map<String, String> meaning_ta;

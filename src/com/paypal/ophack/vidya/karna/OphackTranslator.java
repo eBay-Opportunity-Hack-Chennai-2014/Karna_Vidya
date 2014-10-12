@@ -102,14 +102,8 @@ public class OphackTranslator {
               return URL.toString();
        }
        
-       private final String TRANSLATOR_API_URL  = "http://api.mymemory.translated.net/get";
-       private final String QUESTION_MARK_SEPARATOR = "?";
-       private final String AMPERSAND_SEPARATOR = "&";
+       
        private final String EMPTY_STRING               = "";
-       private final String EQUALS                            = "=";
-       private final String PIPE                              = "|";
-       private final String SRC_RESP_QUERY_PARAM        = "q";
-       private final String SRC_RESP_LANGPAIR_PARAM = "langpair";
        private final String UTF8                              = "UTF-8";
 }
 
